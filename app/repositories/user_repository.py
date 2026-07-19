@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.user import User
+from typing import List
 
 
 class UserRepository:
@@ -36,12 +37,20 @@ class UserRepository:
         )
 
     @staticmethod
+    def get_all(db: Session) -> List[User]:
+        return (
+            db.query(User)
+            .order_by(User.id)
+            .all()
+        )
+
+    @staticmethod
     def update(db: Session, user: User) -> User:
         db.commit()
-        db.refresh(User)
+        db.refresh(user)
         return user
 
     @staticmethod
     def delete(db: Session, user: User) -> None:
-        db.delete(User)
+        db.delete(user)
         db.commit()

@@ -6,6 +6,7 @@ from app.core.security import decode_token
 from app.db.depedencies import get_db
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
+from app.core.roles import UserRole
 
 security = HTTPBearer()
 
@@ -59,7 +60,7 @@ def get_current_active_user(
 def get_current_admin(
     current_user: User = Depends(get_current_active_user),
 ) -> User:
-    if current_user.role != "admin":
+    if current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required.",
@@ -71,7 +72,7 @@ def get_current_admin(
 def get_current_seller(
     current_user: User = Depends(get_current_active_user),
 ) -> User:
-    if current_user.role != "seller":
+    if current_user.role != UserRole.SELLER:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Seller access required.",
