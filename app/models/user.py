@@ -32,3 +32,13 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+
+    categories = relationship(
+        "Category",
+        back_populates="creator",
+    )
+
+    products = relationship(
+        "Product",
+        back_populates="creator",
+    )

@@ -1,6 +1,6 @@
 # E-Commerce Backend API
 
-A FastAPI and PostgreSQL backend that currently provides authentication, user-profile management, refresh-token handling, and role-protected admin operations. It is a foundation for a larger e-commerce application; catalog, cart, order, and payment features are not implemented yet.
+A FastAPI and PostgreSQL backend for authentication, user management, category management, and product catalog management. Cart, order, and payment features are not implemented yet.
 
 ## Features
 
@@ -10,6 +10,9 @@ A FastAPI and PostgreSQL backend that currently provides authentication, user-pr
 - Authenticated profile retrieval, updates, password changes, and account deactivation
 - Role-based access for `customer`, `seller`, and `admin`
 - Admin user listing, role updates, and account activation/deactivation
+- Admin-managed categories, including bulk category creation
+- Admin-managed products linked to categories
+- Automatic ownership (`created_by`) from the authenticated admin account
 - SQLAlchemy models and Alembic database migrations
 
 ## Stack
@@ -31,7 +34,7 @@ app/
   models/         database models
   repositories/   database access helpers
   schemas/        request and response models
-  services/       authentication and user-management logic
+  services/       authentication, category, and product business logic
 alembic/          database migration configuration and revisions
 ```
 
@@ -98,6 +101,19 @@ Open [Swagger UI](http://127.0.0.1:8000/docs) to explore the API. The health che
 | Admin | `PUT` | `/admin/users/{user_id}/role` | Admin token |
 | Admin | `PATCH` | `/admin/users/{user_id}/activate` | Admin token |
 | Admin | `PATCH` | `/admin/users/{user_id}/deactivate` | Admin token |
+| Categories | `POST` | `/categories` | Admin token |
+| Categories | `POST` | `/categories/bulk` | Admin token |
+| Categories | `GET` | `/categories` | Access token |
+| Categories | `GET` | `/categories/{category_id}` | Access token |
+| Categories | `PUT` | `/categories/{category_id}` | Admin token |
+| Categories | `PATCH` | `/categories/{category_id}/activate` | Admin token |
+| Categories | `PATCH` | `/categories/{category_id}/deactivate` | Admin token |
+| Products | `POST` | `/products` | Admin token |
+| Products | `GET` | `/products` | Access token |
+| Products | `GET` | `/products/{product_id}` | Access token |
+| Products | `PUT` | `/products/{product_id}` | Admin token |
+| Products | `PATCH` | `/products/{product_id}/activate` | Admin token |
+| Products | `PATCH` | `/products/{product_id}/deactivate` | Admin token |
 
 Send protected requests with:
 
@@ -105,9 +121,52 @@ Send protected requests with:
 Authorization: Bearer <access_token>
 ```
 
+## Swagger workflow
+
+1. Call `POST /auth/login` with an admin account.
+2. Copy the `access_token` from the response.
+3. In Swagger UI, select **Authorize** and enter `Bearer <access_token>`.
+4. Call protected endpoints. Category and product creation use the logged-in admin ID automatically; do not include `created_by` in the request body.
+
+Use `GET /users/me` to view the current authenticated user's ID and profile.
+
+## Bulk category creation
+
+`POST /categories/bulk` accepts 1 to 100 categories and saves them in a single transaction. Names must be unique within the request and must not already exist in the database.
+
+```json
+{
+  "categories": [
+    {
+      "name": "Furniture",
+      "description": "Tables, chairs, sofas, and home furnishings."
+    },
+    {
+      "name": "Mobile Phones",
+      "description": "Smartphones, feature phones, and mobile accessories."
+    }
+  ]
+}
+```
+
+## Product creation
+
+Products must reference an existing active category through `category_id`. The `created_by` value is assigned from the current authenticated admin.
+
+```json
+{
+  "name": "Wireless Bluetooth Earbuds",
+  "description": "Compact true wireless earbuds with charging case.",
+  "price": 2499.00,
+  "stock": 40,
+  "image_url": "https://example.com/images/earbuds.jpg",
+  "category_id": 1
+}
+```
+
 ## Development notes
 
-- The initial migration creates the `users` and `refresh_tokens` tables.
+- Migrations create the users, refresh-token, category, and product tables.
 - New model changes should be captured in a new Alembic migration before deployment.
 - `Dockerfile` and `docker-compose.yml` are placeholders and do not yet provide a Docker workflow.
 - There is no automated test suite checked in yet. Add API and service tests before relying on this in production.

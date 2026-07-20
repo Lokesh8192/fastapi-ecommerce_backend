@@ -1,265 +1,139 @@
 # Project Notes
 
-This document provides a professional and easy-to-understand explanation of the main backend file and the application flow.
+This document describes the current backend structure and the main application flows.
 
-## 1. File Overview
+## Application entry point
 
 ### `app/main.py`
 
-This is the entry point of the FastAPI application. It is responsible for:
-
-- creating the application instance
-- storing the project metadata such as title and version
-- loading all API route modules
-- exposing the base and health endpoints
-
-## 2. Application Initialization
-
-### Syntax
-
-```python
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version=settings.API_VERSION,
-)
-```
-
-### Explanation
-
-The `FastAPI()` function creates the main application object.
-
-- `title=settings.PROJECT_NAME` sets the API name using the environment configuration.
-- `version=settings.API_VERSION` sets the application version.
-
-This is the starting point for the entire backend service.
-
-## 3. Router Registration
-
-### Syntax
+`app/main.py` creates the FastAPI application, loads configuration, and registers every router:
 
 ```python
 app.include_router(auth_router)
 app.include_router(user_router)
-app.include_router(admi_router)
+app.include_router(admin_router)
+app.include_router(category_router)
+app.include_router(product_router)
 ```
 
-### Explanation
+It also exposes:
 
-These statements register different route groups into the FastAPI application.
+- `GET /` — basic API status message
+- `GET /health` — health-check response
 
-- `auth_router` handles authentication operations such as register, login, token refresh, and logout.
-- `user_router` handles user-specific operations like viewing the current user profile.
-- `admi_router` handles admin-only routes such as the admin dashboard.
+## Modules and responsibilities
 
-By registering these routers, all endpoint functions become available through the API.
+| Module | Responsibility |
+| --- | --- |
+| `app/api/auth.py` | Registration, login, refresh tokens, and logout |
+| `app/api/user.py` | Current-user profile operations |
+| `app/api/admin.py` | Admin dashboard and user administration |
+| `app/api/category.py` | Category creation, bulk creation, reads, updates, and activation state |
+| `app/api/product.py` | Product creation, reads, updates, and activation state |
+| `app/services/` | Business rules and validation |
+| `app/repositories/` | Database queries and transactions |
+| `app/models/` | SQLAlchemy table definitions |
+| `app/schemas/` | Pydantic request and response validation |
 
-## 4. Home Route
+## Authentication and authorization
 
-### Syntax
+The API uses JWT access tokens. Protected routes receive the authenticated user through FastAPI dependencies.
 
-```python
-@app.get("/")
-def home():
-    return {
-        "message": "E-commerce backed API Running Successfully"
+- `get_current_user` validates the bearer token and loads the associated user.
+- `get_current_active_user` also requires an active account.
+- `get_current_admin` requires an active account with the `admin` role.
+
+Category and product writes require an admin token. Their `created_by` fields are set automatically from the authenticated admin ID; clients do not send this value in request bodies.
+
+## Swagger workflow
+
+1. Open `http://127.0.0.1:8000/docs`.
+2. Call `POST /auth/login` with an admin account.
+3. Copy the returned access token.
+4. Select **Authorize** in Swagger and enter `Bearer <access_token>`.
+5. Call protected routes.
+
+Use `GET /users/me` to view the currently authenticated user and ID.
+
+## Category management
+
+### Single category creation
+
+`POST /categories` creates one category. The request contains a name and description; the API assigns the logged-in admin to `created_by`.
+
+### Bulk category creation
+
+`POST /categories/bulk` creates from 1 to 100 categories in one request.
+
+```json
+{
+  "categories": [
+    {
+      "name": "Furniture",
+      "description": "Tables, chairs, sofas, and home furnishings."
+    },
+    {
+      "name": "Mobile Phones",
+      "description": "Smartphones, feature phones, and mobile accessories."
     }
+  ]
+}
 ```
 
-### Explanation
+The bulk operation validates duplicate names both within the request and against the database. It uses one transaction: if any category cannot be saved, the whole batch is rolled back.
 
-- `@app.get("/")` defines a GET request for the root path.
-- `def home()` is the function that runs when the route is called.
-- The function returns a JSON response showing that the API is running successfully.
+### Category access rules
 
-This route is often used as a quick sanity check during development.
+- `GET /categories` and `GET /categories/{category_id}` require any authenticated user.
+- Creating, updating, activating, and deactivating categories require an admin.
+- Only active categories are returned by the category list endpoint.
 
-## 5. Health Check Route
+## Product management
 
-### Syntax
+A product belongs to a category through `category_id` and is owned by the authenticated admin through `created_by`.
 
-```python
-@app.get("/health")
-def Health():
-    return {
-        "status": "healthy"
-    }
+```json
+{
+  "name": "Wireless Bluetooth Earbuds",
+  "description": "Compact true wireless earbuds with charging case.",
+  "price": 2499.00,
+  "stock": 40,
+  "image_url": "https://example.com/images/earbuds.jpg",
+  "category_id": 1
+}
 ```
 
-### Explanation
+When creating a product, the service verifies that the requested category exists and is active. A product with the same name cannot be added twice to the same category.
 
-- `@app.get("/health")` creates a health check endpoint.
-- The function returns a simple status message.
-- This endpoint is useful for monitoring systems, deployment checks, and uptime verification.
+### Product access rules
 
-## 6. Request Flow Summary
+- `GET /products` and `GET /products/{product_id}` require any authenticated user.
+- Creating, updating, activating, and deactivating products require an admin.
 
-The request flow in this file is straightforward:
+## Request flow
 
-1. The client sends a request to the FastAPI application.
-2. The app checks the route configuration.
-3. The corresponding router handles the request.
-4. The logic inside the endpoint returns a response in JSON format.
+1. The client sends an HTTP request.
+2. FastAPI matches the route in an API router.
+3. Dependencies validate the token and permissions when needed.
+4. The route calls a service method.
+5. The service applies business rules and calls a repository.
+6. The repository reads or writes PostgreSQL through SQLAlchemy.
+7. The route returns the standard `ApiResponse` JSON shape.
 
-## 7. Practical Use
+## Database and migrations
 
-This file is important because it ties all parts of the backend together.
+SQLAlchemy models define the users, refresh tokens, categories, and products tables. Alembic migrations must be applied before running the application:
 
-Without this file:
-
-- the application would not start
-- routes would not be attached
-- the server would not respond to API requests
-
-## 8. Best Practices
-
-- Keep the startup file minimal and clean.
-- Register routes only through dedicated router modules.
-- Use environment-based settings rather than hardcoded values.
-- Keep the root and health endpoints simple and reliable.
-
-## 9. Authentication Module Notes
-
-### File: `app/api/auth.py`
-
-This file defines the authentication-related API routes. It is responsible for user registration, login, token refresh, and logout functionality.
-
-### Route Structure
-
-```python
-router = APIRouter(
-    prefix="/auth",
-    tags=["Authetication"],
-)
+```powershell
+alembic upgrade head
 ```
 
-### Explanation
+Create a new migration whenever a model schema changes. Test migrations on a non-production database before deployment.
 
-- `APIRouter()` creates a modular router for the authentication endpoints.
-- `prefix="/auth"` ensures all routes in this file are accessed under the `/auth` path.
-- `tags=["Authetication"]` groups these endpoints in the generated OpenAPI documentation.
+## Development guidance
 
-### Register Endpoint
-
-```python
-@router.post(
-    "/register",
-    response_model=ApiResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-def register(user: UserCreate, db: Session = Depends(get_db)):
-```
-
-### Explanation
-
-- `@router.post("/register")` creates a POST endpoint for user registration.
-- `response_model=ApiResponse` ensures the response follows a standard API structure.
-- `status_code=201` indicates that a new user resource has been created.
-- `user: UserCreate` receives the incoming registration payload.
-- `db: Session = Depends(get_db)` injects the database session for database interaction.
-
-### Login Endpoint
-
-```python
-@router.post("/login", response_model=ApiResponse)
-def login(login_data: LoginRequest, db: Session = Depends(get_db)):
-```
-
-### Explanation
-
-This endpoint authenticates a user by validating the provided login payload and returning a response object containing authentication details.
-
-### Refresh Token Endpoint
-
-```python
-@router.post("/refresh", response_model=ApiResponse)
-def refresh_token(request: RefreshTokenRequest, db: Session = Depends(get_db)):
-```
-
-### Explanation
-
-This route accepts a refresh token and returns a new access token when the token is valid.
-
-### Logout Endpoint
-
-```python
-@router.post("/logout", response_model=ApiResponse)
-def logout(request: RefreshTokenRequest, db: Session = Depends(get_db)):
-```
-
-### Explanation
-
-This endpoint invalidates the refresh token and ends the user session securely.
-
-## 10. User Module Notes
-
-### File: `app/api/user.py`
-
-This file contains routes associated with the authenticated user profile.
-
-### Router Setup
-
-```python
-router = APIRouter(
-    prefix="/users",
-    tags=["Users"],
-)
-```
-
-### Explanation
-
-- The router is prefixed with `/users`.
-- All routes in this module are grouped under the `Users` tag.
-
-### Profile Endpoint
-
-```python
-@router.get("/me", response_model=ApiResponse)
-def get_my_profile(current_user: User = Depends(get_current_user)):
-```
-
-### Explanation
-
-- `@router.get("/me")` defines a GET route for viewing the current authenticated user's profile.
-- `current_user: User = Depends(get_current_user)` uses the dependency to fetch the logged-in user from the token.
-- The response is returned in a standardized API response structure.
-
-## 11. Admin Module Notes
-
-### File: `app/api/admin.py`
-
-This file defines routes intended for administrative users only.
-
-### Router Setup
-
-```python
-router = APIRouter(
-    prefix="/admin",
-    tags=["Admin"],
-)
-```
-
-### Explanation
-
-- The router prefix is `/admin`, keeping admin routes separated from user routes.
-- The endpoint group is labeled as `Admin` in the OpenAPI docs.
-
-### Admin Dashboard Route
-
-```python
-@router.get("/dashboard", response_model=ApiResponse)
-def admin_dashboard(current_admin: User = Depends(get_current_admin)):
-```
-
-### Explanation
-
-- `@router.get("/dashboard")` creates an admin-only dashboard endpoint.
-- `Depends(get_current_admin)` ensures only an authenticated admin can access it.
-- The returned data is formatted using the shared `ApiResponse` schema.
-
-## 12. Summary of API Responsibilities
-
-- `auth.py` handles user identity and token operations.
-- `user.py` handles the authenticated user's self-profile data.
-- `admin.py` restricts access to administrative functionality.
-
-This separation improves maintainability, readability, and security by keeping each route responsibility in its own module.
+- Keep route handlers focused on HTTP input and output.
+- Put business rules in services and queries in repositories.
+- Validate database foreign keys and active-state rules before writes.
+- Use environment variables for database URLs and secrets.
+- Add API and service tests before deploying to production.
