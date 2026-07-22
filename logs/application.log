@@ -1,0 +1,7 @@
+2026-07-22 15:38:16,813 | INFO | ecommerce | GET /docs 200 0.000s
+2026-07-22 15:38:17,006 | INFO | ecommerce | GET /openapi.json 200 0.083s
+2026-07-22 15:47:08,589 | INFO | ecommerce | request_id=10e7a0d7-3aef-4d14-8393-25079a361a46 method=POST path=/auth/login status=401 duration=0.202s
+2026-07-22 15:47:26,063 | INFO | ecommerce | request_id=c1f7e464-2b2d-4243-a9ae-f83a2414c06c method=POST path=/auth/login status=200 duration=0.046s
+2026-07-22 15:48:06,241 | INFO | ecommerce | request_id=3a7164dc-d008-4bf7-a187-540246e19811 method=GET path=/products/all status=200 duration=0.044s
+2026-07-22 15:48:33,106 | INFO | ecommerce | request_id=472a73dc-c011-4ec9-af58-27bd05f628f5 method=GET path=/admin/dashboard status=200 duration=0.004s
+2026-07-22 15:48:51,845 | INFO | ecommerce | request_id=0fef1ff2-1be7-448e-ad0a-2101ba3e792d method=GET path=/admin/users/3 status=200 duration=0.008s

@@ -85,7 +85,7 @@ The bulk operation validates duplicate names both within the request and against
 ### Category access rules
 
 - `GET /categories` and `GET /categories/{category_id}` require any authenticated user.
-- Creating, updating, activating, and deactivating categories require an admin.
+- Creating and updating categories require an admin. `PATCH /categories/{category_id}/status` requires an admin and accepts `{ "is_active": true }` or `{ "is_active": false }`.
 - Only active categories are returned by the category list endpoint.
 
 ## Product management
@@ -107,18 +107,24 @@ When creating a product, the service verifies that the requested category exists
 
 ### Product access rules
 
-- `GET /products` and `GET /products/{product_id}` require any authenticated user.
-- Creating, updating, activating, and deactivating products require an admin.
+- `GET /products` supports search, category, price, sorting, and pagination query parameters; it requires any authenticated user.
+- `GET /products/all` returns all active products without filters or pagination; it requires any authenticated user.
+- `GET /products/{product_id}` requires any authenticated user.
+- Creating and updating products require an admin.
+- `PATCH /products/{product_id}/status` requires an admin and accepts `{ "is_active": true }` or `{ "is_active": false }`.
 
+## Errors and request IDs
+
+Services raise the project custom exceptions (`BadRequestException`, `UnauthorizedException`, `ForbiddenException`, `NotFoundException`, and `ConflictException`). The global `AppException` handler returns a consistent error body with `error_code`, `message`, `errors`, and `request_id`. Request context middleware creates the request ID and also returns it in the `X-Request-ID` response header.
 ## Request flow
 
-1. The client sends an HTTP request.
+1. Request context middleware assigns a unique request ID to the client request.
 2. FastAPI matches the route in an API router.
 3. Dependencies validate the token and permissions when needed.
 4. The route calls a service method.
 5. The service applies business rules and calls a repository.
 6. The repository reads or writes PostgreSQL through SQLAlchemy.
-7. The route returns the standard `ApiResponse` JSON shape.
+7. The route returns the standard `ApiResponse` JSON shape; error responses include the same request ID that is written to logs and the `X-Request-ID` header.
 
 ## Database and migrations
 

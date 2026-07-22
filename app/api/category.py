@@ -13,6 +13,7 @@ from app.schemas.category import (
     CategoryUpdate,
 )
 from app.schemas.common import ApiResponse
+from app.schemas.common import StatusUpdate
 from app.services.category_service import category_service
 
 router = APIRouter(
@@ -130,69 +131,25 @@ def update_category(
         data=category,
     )
 
-
 @router.patch(
-    "/{category_id}/activate",
+    "/{category_id}/status",
     response_model=ApiResponse,
 )
-def activate_category(
+def update_category_status(
     category_id: int,
+    status_data: StatusUpdate,
     db: Session = Depends(get_db),
     current_admin: User = Depends(get_current_admin),
 ):
 
-    category = category_service.activate_category(
+    category = category_service.update_category_status(
         db=db,
         category_id=category_id,
+        is_active=status_data.is_active,
     )
 
     return ApiResponse(
         success=True,
-        message="Category activated successfully.",
+        message="Category status updated successfully.",
         data=category,
     )
-
-
-@router.patch(
-    "/{category_id}/activate",
-    response_model=ApiResponse,
-)
-def activate_category(
-    category_id: int,
-    db: Session = Depends(get_db),
-    current_admin: User = Depends(get_current_admin),
-):
-
-    category = category_service.activate_category(
-        db=db,
-        category_id=category_id,
-    )
-
-    return ApiResponse(
-        success=True,
-        message="Category activated successfully.",
-        data=category,
-    )
-
-
-@router.patch(
-    "/{category_id}/deactivate",
-    response_model=ApiResponse,
-)
-def deactivate_category(
-    category_id: int,
-    db: Session = Depends(get_db),
-    current_admin: User = Depends(get_current_admin),
-):
-
-    category = category_service.deactivate_category(
-        db=db,
-        category_id=category_id,
-    )
-
-    return ApiResponse(
-        success=True,
-        message="Category deactivated successfully.",
-        data=category,
-    )
-

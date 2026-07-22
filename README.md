@@ -106,15 +106,13 @@ Open [Swagger UI](http://127.0.0.1:8000/docs) to explore the API. The health che
 | Categories | `GET` | `/categories` | Access token |
 | Categories | `GET` | `/categories/{category_id}` | Access token |
 | Categories | `PUT` | `/categories/{category_id}` | Admin token |
-| Categories | `PATCH` | `/categories/{category_id}/activate` | Admin token |
-| Categories | `PATCH` | `/categories/{category_id}/deactivate` | Admin token |
+| Categories | `PATCH` | `/categories/{category_id}/status` | Admin token |
 | Products | `POST` | `/products` | Admin token |
 | Products | `GET` | `/products` | Access token |
+| Products | `GET` | `/products/all` | Access token |
 | Products | `GET` | `/products/{product_id}` | Access token |
 | Products | `PUT` | `/products/{product_id}` | Admin token |
-| Products | `PATCH` | `/products/{product_id}/activate` | Admin token |
-| Products | `PATCH` | `/products/{product_id}/deactivate` | Admin token |
-
+| Products | `PATCH` | `/products/{product_id}/status` | Admin token |
 Send protected requests with:
 
 ```http
@@ -164,6 +162,29 @@ Products must reference an existing active category through `category_id`. The `
 }
 ```
 
+## Product listing and status
+
+- `GET /products` supports `search`, `category_id`, `min_price`, `max_price`, `sort_by`, `order`, `page`, and `size` query parameters.
+- `GET /products/all` returns every active product without filtering or pagination.
+- `PATCH /products/{product_id}/status` changes a product's active state. Send a valid JSON body such as:
+
+  ```json
+  { "is_active": false }
+  ```
+
+## Error responses and request IDs
+
+Business-rule errors are returned through the shared exception handler. Error responses include a machine-readable `error_code`, a message, optional field errors, and a per-request `request_id`. The same ID is returned in the `X-Request-ID` response header for log correlation.
+
+```json
+{
+  "success": false,
+  "error_code": "PRODUCT_NOT_FOUND",
+  "message": "Product not found.",
+  "errors": null,
+  "request_id": "a1b2c3d4-..."
+}
+```
 ## Development notes
 
 - Migrations create the users, refresh-token, category, and product tables.
