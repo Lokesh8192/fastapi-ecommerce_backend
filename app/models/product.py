@@ -25,3 +25,7 @@ class Product(Base):
                         server_default=func.now(), onupdate=func.now(),)
     category = relationship("Category", back_populates="products",)
     creator = relationship("User", back_populates="products",)
+    cart_items = relationship(
+        "CartItem",
+        back_populates="product",
+    )

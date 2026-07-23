@@ -42,3 +42,9 @@ class User(Base):
         "Product",
         back_populates="creator",
     )
+
+    cart = relationship(
+        "Cart",
+        back_populates="user",
+        uselist=False,
+    )

@@ -15,7 +15,7 @@ from app.exceptions.handlers import (
 )
 from app.middleware.logging_middleware import LoggingMiddleware
 from app.middleware.request_context import RequestContextMiddleware
-
+from app.api.cart import router as cart_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -32,7 +32,10 @@ app.include_router(user_router)
 app.include_router(admin_router)
 app.include_router(category_router)
 app.include_router(product_router)
-
+app.include_router(
+    cart_router,
+    prefix="/api/v1",
+)
 
 @app.get("/")
 def home():
