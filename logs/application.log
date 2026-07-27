@@ -64,3 +64,13 @@
 2026-07-27 16:42:48,029 | INFO | ecommerce | request_id=cd48a8b3-cd40-46e1-a782-57432f5131e3 method=DELETE path=/api/v1/cart/2 status=200 duration=0.026s
 2026-07-27 16:43:08,406 | INFO | ecommerce | request_id=976f6d16-8faf-4fd6-9276-8ae75a9b0e16 method=DELETE path=/api/v1/cart/2 status=404 duration=0.005s
 2026-07-27 16:43:49,314 | INFO | ecommerce | request_id=53c726ee-3a87-42af-855c-8b4f968f509e method=DELETE path=/api/v1/cart status=200 duration=0.008s
+2026-07-27 21:28:30,676 | INFO | ecommerce | request_id=91d2d8cd-0c9d-41b2-9297-d228e28ee90d method=GET path=/docs status=200 duration=0.000s
+2026-07-27 21:28:31,315 | INFO | ecommerce | request_id=e4673266-0ee2-4823-b4cd-29355448fe76 method=GET path=/openapi.json status=200 duration=0.118s
+2026-07-27 21:31:20,656 | INFO | ecommerce | request_id=803fe96e-b14b-43f2-9018-a332ea4248b3 method=POST path=/auth/login status=200 duration=0.243s
+2026-07-27 21:32:52,727 | INFO | ecommerce | request_id=81a93d30-ed02-4ec2-a928-a8b0867c1d9f method=POST path=/api/v1/cart status=200 duration=0.109s
+2026-07-27 21:35:13,632 | INFO | ecommerce | request_id=b75b632c-e7cd-4f87-b87f-1ccc614a2b33 method=POST path=/api/v1/orders status=200 duration=0.280s
+2026-07-27 21:43:29,207 | INFO | ecommerce | request_id=57f1c23e-1ef5-4f55-9f6a-ff78f72e2823 method=GET path=/api/v1/orders status=401 duration=0.061s
+2026-07-27 21:43:39,178 | INFO | ecommerce | request_id=414a6a58-65ad-4969-a572-b36c353ba643 method=POST path=/auth/login status=200 duration=0.170s
+2026-07-27 21:43:58,748 | INFO | ecommerce | request_id=245bdd2e-64ff-47e3-a169-7daf9edafb33 method=GET path=/api/v1/orders status=200 duration=0.025s
+2026-07-27 21:44:52,406 | INFO | ecommerce | request_id=b74427e0-fcbb-4080-9804-c6fb8bf890f9 method=GET path=/api/v1/orders/1 status=200 duration=0.016s
+2026-07-27 21:50:15,990 | INFO | ecommerce | request_id=c575359c-5f07-4018-a340-84dbb7bba5b4 method=PATCH path=/api/v1/orders/1/status status=200 duration=0.222s
