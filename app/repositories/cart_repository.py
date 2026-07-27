@@ -55,6 +55,22 @@ class CartRepository:
             .first()
         )
 
+    def get_cart_item_by_user_id(
+        self,
+        db: Session,
+        user_id: int,
+        product_id: int,
+    ) -> CartItem | None:
+        return (
+            db.query(CartItem)
+            .join(Cart)
+            .filter(
+                Cart.user_id == user_id,
+                CartItem.product_id == product_id,
+            )
+            .first()
+        )
+
     def add_cart_item(
         self,
         db: Session,

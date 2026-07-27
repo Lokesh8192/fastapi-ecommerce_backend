@@ -108,10 +108,11 @@ class CartService:
         product_id: int,
         request: UpdateCartItemRequest,
     ) -> CartResponse:
-        cart = self.cart_repository.get_cart_by_user_id(db, user_id)
-        if not cart:
-            raise NotFoundException("Cart item not found.")
-        cart_item = self.cart_repository.get_cart_item(db, cart.id, product_id)
+        cart_item = self.cart_repository.get_cart_item_by_user_id(
+            db,
+            user_id,
+            product_id,
+        )
         if not cart_item:
             raise NotFoundException("Cart item not found.")
         product = self.product_repository.get_by_id(db, product_id)
@@ -130,10 +131,11 @@ class CartService:
         return self._get_cart_response(db, user_id)
 
     def remove_item(self, db: Session, user_id: int, product_id: int) -> CartResponse:
-        cart = self.cart_repository.get_cart_by_user_id(db, user_id)
-        if not cart:
-            raise NotFoundException("Cart item not found.")
-        cart_item = self.cart_repository.get_cart_item(db, cart.id, product_id)
+        cart_item = self.cart_repository.get_cart_item_by_user_id(
+            db,
+            user_id,
+            product_id,
+        )
         if not cart_item:
             raise NotFoundException("Cart item not found.")
         try:
