@@ -59,3 +59,8 @@
 2026-07-27 16:28:34,878 | INFO | ecommerce | request_id=30ed60a6-c447-48d5-8eb0-21158faf7cd7 method=PUT path=/api/v1/cart/2 status=200 duration=0.044s
 2026-07-27 16:29:25,670 | INFO | ecommerce | request_id=a259df4a-7638-4473-9831-b080c1775f02 method=DELETE path=/api/v1/cart/1 status=404 duration=0.007s
 2026-07-27 16:41:18,692 | INFO | ecommerce | request_id=78b9fe4b-91fd-4791-9df3-41db050b6874 method=DELETE path=/api/v1/cart/1 status=401 duration=0.069s
+2026-07-27 16:41:55,826 | INFO | ecommerce | request_id=a8cef097-dece-417a-8246-9ea6ded95be8 method=POST path=/auth/refresh status=200 duration=0.211s
+2026-07-27 16:42:16,753 | INFO | ecommerce | request_id=91a2cc41-4e33-41ca-a67d-568086065f5b method=DELETE path=/api/v1/cart/1 status=404 duration=0.017s
+2026-07-27 16:42:48,029 | INFO | ecommerce | request_id=cd48a8b3-cd40-46e1-a782-57432f5131e3 method=DELETE path=/api/v1/cart/2 status=200 duration=0.026s
+2026-07-27 16:43:08,406 | INFO | ecommerce | request_id=976f6d16-8faf-4fd6-9276-8ae75a9b0e16 method=DELETE path=/api/v1/cart/2 status=404 duration=0.005s
+2026-07-27 16:43:49,314 | INFO | ecommerce | request_id=53c726ee-3a87-42af-855c-8b4f968f509e method=DELETE path=/api/v1/cart status=200 duration=0.008s
