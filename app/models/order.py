@@ -6,7 +6,7 @@ from app.models.enums import OrderStatus
 
 
 class Order(Base):
-    __tablename__= "orders"
+    __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, index=True,)
     order_number = Column(String(50), unique=True, nullable=False, index=True,)
@@ -31,4 +31,10 @@ class Order(Base):
         "OrderItem",
         back_populates="order",
         cascade="all, delete-orphan",
+    )
+
+    payment = relationship(
+        "Payment",
+        back_populates="order",
+        uselist=False,
     )
