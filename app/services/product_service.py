@@ -102,5 +102,76 @@ class ProductService:
                 setattr(product, field, value)
         return ProductResponse.model_validate(ProductRepository.update(db, product))
 
+    @staticmethod
+    def update_stock(
+        db: Session,
+        product_id: int,
+        stock_quantity: int,
+    ) -> ProductResponse:
+        product = ProductService._get_existing_product(db, product_id)
+
+        product.stock = stock_quantity
+
+        updated_product = ProductRepository.update(db, product)
+
+        return ProductResponse.model_validate(updated_product)
+
+    @staticmethod
+    def validate_stock(
+        product: Product,
+        quantity: int,
+    ) -> None:
+        if not product.is_active:
+            raise BadRequestException(
+                "Product is inactive.",
+                ErrorCode.PRODUCT_INACTIVE,
+            )
+
+        if product.stock < quantity:
+            raise BadRequestException(
+                "Insufficient stock available.",
+                ErrorCode.INSUFFICIENT_STOCK,
+            )
+
+    @staticmethod
+    def deduct_stock(
+        db: Session,
+        product: Product,
+        quantity: int,
+    ) -> None:
+        product.stock -= quantity
+        ProductRepository.update(db, product)
+
+    @staticmethod
+    def restore_stock(
+        db: Session,
+        product: Product,
+        quantity: int,
+    ) -> None:
+        product.stock += quantity
+        ProductRepository.update(db, product)
+
+    @staticmethod
+    def get_low_stock_products(
+        db: Session,
+        threshold: int = 10,
+    ) -> list[ProductResponse]:
+        products = ProductRepository.get_low_stock_products(db, threshold)
+
+        return [
+            ProductResponse.model_validate(product)
+            for product in products
+        ]
+
+    @staticmethod
+    def get_out_of_stock_products(
+        db: Session,
+    ) -> list[ProductResponse]:
+        products = ProductRepository.get_out_of_stock_products(db)
+        return [
+            ProductResponse.model_validate(product)
+            for product in products
+        ]
+
 
 product_service = ProductService()

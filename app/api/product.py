@@ -11,6 +11,7 @@ from app.schemas.common import ApiResponse
 from app.schemas.product import (
     ProductCreate,
     ProductUpdate,
+    StockUpdate,
 )
 from app.schemas.common import StatusUpdate
 from app.services.product_service import product_service
@@ -98,6 +99,44 @@ def get_all_products(
 
 
 @router.get(
+    "/low-stock",
+    response_model=ApiResponse,
+)
+def get_low_stock_products(
+    threshold: int = 10,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin),
+):
+    products = product_service.get_low_stock_products(
+        db=db,
+        threshold=threshold,
+    )
+
+    return ApiResponse(
+        success=True,
+        message="Low stock products fetched successfully.",
+        data=products,
+    )
+
+
+@router.get(
+    "/out-of-stock",
+    response_model=ApiResponse,
+)
+def get_out_of_stock_products(
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin),
+):
+    products = product_service.get_out_of_stock_products(db)
+
+    return ApiResponse(
+        success=True,
+        message="Out of stock products fetched successfully.",
+        data=products,
+    )
+
+
+@router.get(
     "/{product_id}",
     response_model=ApiResponse,
 )
@@ -164,5 +203,28 @@ def update_product_status(
     return ApiResponse(
         success=True,
         message="Product status updated successfully.",
+        data=product,
+    )
+
+
+@router.patch(
+    "/{product_id}/stock",
+    response_model=ApiResponse,
+)
+def update_product_stock(
+    product_id: int,
+    request: StockUpdate,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin),
+):
+    product = product_service.update_stock(
+        db=db,
+        product_id=product_id,
+        stock_quantity=request.stock,
+    )
+
+    return ApiResponse(
+        success=True,
+        message="Product stock updated successfully.",
         data=product,
     )

@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from app.schemas.category import CategoryResponse
 
 from pydantic import (
     BaseModel,
@@ -36,6 +37,8 @@ class ProductBase(BaseModel):
         description="Product image URL.",
     )
     category_id: int
+    stock_quantity: int = Field(ge=0, default=0)
+    is_active: bool = True
 
     @field_validator("image_url")
     @classmethod
@@ -96,6 +99,8 @@ class ProductUpdate(BaseModel):
     )
 
     category_id: int | None = None
+    stock_quantity: int = Field(ge=0, default=None)
+    is_active: bool | None = None
 
     @field_validator("image_url")
     @classmethod
@@ -140,11 +145,22 @@ class ProductResponse(ProductBase):
 
     created_by: int
 
+    stock_quantity: int
     is_active: bool
 
     created_at: datetime
 
     updated_at: datetime
+
+    category: CategoryResponse
+
+
+    model_config = {
+        "from_attributes": True
+    }
+
+class StockUpdate(BaseModel):
+    stock: int = Field(ge=0)
 
     model_config = {
         "from_attributes": True

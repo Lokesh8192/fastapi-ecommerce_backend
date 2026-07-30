@@ -9,6 +9,7 @@ from app.repositories.order_repository import OrderRepository
 from app.repositories.payment_repository import PaymentRepository
 from app.schemas.payment import PaymentCreate, PaymentResponse
 from app.utils.payment_reference import generate_payment_reference
+from app.services.product_service import ProductService
 
 
 class PaymentService:
@@ -45,9 +46,11 @@ class PaymentService:
         if not order or order.user_id != user_id:
             raise NotFoundException("Order not found.")
         if order.status != OrderStatus.PENDING:
-            raise BadRequestException("Payments can only be created for pending orders.")
+            raise BadRequestException(
+                "Payments can only be created for pending orders.")
         if self.payment_repository.get_payment_by_order_id(db, order.id):
-            raise BadRequestException("A payment already exists for this order.")
+            raise BadRequestException(
+                "A payment already exists for this order.")
 
         try:
             payment = self.payment_repository.create_payment(
@@ -125,14 +128,31 @@ class PaymentService:
 
         try:
             payment.payment_status = payment_status
+
             if payment_status == PaymentStatus.SUCCESS:
                 payment.transaction_id = f"TXN-{uuid4().hex.upper()}"
-                order.status = OrderStatus.PAID
 
-            self.payment_repository.update_payment(db, payment)
-            self.order_repository.update_order(db, order)
-            db.commit()
-            db.refresh(payment)
+            # Validate stock for all order items first
+            for item in order.items:
+                product_service.validate_stock(
+                    product=item.product,
+                    quantity=item.quantity,
+                )
+
+            # Deduct stock only after all validations succeed
+            for item in order.items:
+                product_service.deduct_stock(
+                    db=db,
+                    product=item.product,
+                    quantity=item.quantity,
+                )
+
+                order.status = OrderStatus.CONFIRMED
+
+                self.payment_repository.update_payment(db, payment)
+                self.order_repository.update_order(db, order)
+                db.commit()
+                db.refresh(payment)
         except Exception:
             db.rollback()
             raise

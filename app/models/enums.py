@@ -3,7 +3,7 @@ from enum import Enum
 
 class OrderStatus(str, Enum):
     PENDING = "PENDING"
-    PAID = "PAID"
+    CONFIRMED = "CONFIRMED"
     SHIPPED = "SHIPPED"
     DELIVERED = "DELIVERED"
     CANCELLED = "CANCELLED"
@@ -14,6 +14,7 @@ class PaymentStatus(str, Enum):
     SUCCESS = "SUCCESS"
     FAILED = "FAILED"
     REFUNDED = "REFUNDED"
+
 
 class PaymentMethod(str, Enum):
     CARD = "CARD"

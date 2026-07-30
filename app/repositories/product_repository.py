@@ -135,3 +135,39 @@ class ProductRepository:
         db.commit()
         db.refresh(product)
         return product
+
+    @staticmethod
+    def update_product(
+        db: Session,
+        product: Product,
+    ) -> Product:
+        db.flush()
+        db.refresh(product)
+        return product
+
+    @staticmethod
+    def get_low_stock_products(
+        db: Session,
+        threshold: int = 10,
+    ):
+        return (
+            db.query(Product)
+            .filter(
+                Product.stock_quantity <= threshold,
+                Product.is_active.is_(True),
+            )
+            .all()
+        )
+
+    @staticmethod
+    def get_out_of_stock_products(
+        db: Session,
+    ):
+        return (
+            db.query(Product)
+            .filter(
+                Product.stock_quantity == 0,
+                Product.is_active.is_(True),
+            )
+            .all()
+        )
