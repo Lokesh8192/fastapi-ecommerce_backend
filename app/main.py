@@ -18,6 +18,7 @@ from app.middleware.request_context import RequestContextMiddleware
 from app.api.cart import router as cart_router
 from app.api.order import router as order_router
 from app.api.payment import router as payment_router
+from app.api.address import router as address_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -31,6 +32,7 @@ app.add_middleware(LoggingMiddleware)
 app.add_middleware(RequestContextMiddleware)
 app.include_router(auth_router)
 app.include_router(user_router)
+app.include_router(address_router)
 app.include_router(admin_router)
 app.include_router(category_router)
 app.include_router(product_router)

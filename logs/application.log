@@ -162,3 +162,8 @@
 2026-07-30 17:46:26,986 | INFO | ecommerce | request_id=ccf487f2-c870-4080-98f4-bad02a1514c1 method=GET path=/products/low-stock status=401 duration=0.122s
 2026-07-30 17:46:48,265 | INFO | ecommerce | request_id=c9c24ff7-9052-4d24-82c9-ff69fd26c091 method=GET path=/products/low-stock status=200 duration=0.090s
 2026-07-30 17:47:04,298 | INFO | ecommerce | request_id=b911b8b4-55a7-442d-a5bd-ea4b4665ae2f method=GET path=/products/out-of-stock status=200 duration=0.049s
+2026-07-30 21:21:07,760 | INFO | ecommerce | request_id=2013544b-6818-4c14-b135-fd0d659e38a5 method=GET path=/docs status=200 duration=0.001s
+2026-07-30 21:21:08,491 | INFO | ecommerce | request_id=b6b17867-a3d9-4dd7-9737-701be4105623 method=GET path=/openapi.json status=200 duration=0.449s
+2026-07-30 21:21:31,571 | INFO | ecommerce | request_id=bee3e542-433e-4343-baee-2a1840bdafab method=POST path=/auth/login status=200 duration=0.609s
+2026-07-30 21:25:57,800 | INFO | ecommerce | request_id=c59dcab5-ccf0-4ad4-a2eb-34f2cd813d7e method=POST path=/addresses status=200 duration=0.338s
+2026-07-30 21:26:59,445 | INFO | ecommerce | request_id=1bd09b3e-1457-4511-be41-f3969a0a4550 method=GET path=/addresses status=200 duration=0.030s
