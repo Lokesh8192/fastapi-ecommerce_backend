@@ -134,14 +134,14 @@ class PaymentService:
 
             # Validate stock for all order items first
             for item in order.items:
-                product_service.validate_stock(
+                ProductService.validate_stock(
                     product=item.product,
                     quantity=item.quantity,
                 )
 
             # Deduct stock only after all validations succeed
             for item in order.items:
-                product_service.deduct_stock(
+                ProductService.deduct_stock(
                     db=db,
                     product=item.product,
                     quantity=item.quantity,

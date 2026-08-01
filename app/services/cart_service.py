@@ -69,7 +69,7 @@ class CartService:
         product = self.product_repository.get_by_id(db, request.product_id)
         if not product or not product.is_active:
             raise NotFoundException("Product not found.", ErrorCode.PRODUCT_NOT_FOUND)
-        if request.quantity > product.stock:
+        if request.quantity > product.stock_quantity:
             raise BadRequestException("Insufficient stock.")
 
         try:
@@ -77,7 +77,7 @@ class CartService:
             cart_item = self.cart_repository.get_cart_item(db, cart.id, product.id)
             if cart_item:
                 new_quantity = cart_item.quantity + request.quantity
-                if new_quantity > product.stock:
+                if new_quantity > product.stock_quantity:
                     raise BadRequestException("Insufficient stock.")
                 cart_item.quantity = new_quantity
                 self.cart_repository.update_cart_item(db, cart_item)
@@ -118,7 +118,7 @@ class CartService:
         product = self.product_repository.get_by_id(db, product_id)
         if not product or not product.is_active:
             raise NotFoundException("Product not found.", ErrorCode.PRODUCT_NOT_FOUND)
-        if request.quantity > product.stock:
+        if request.quantity > product.stock_quantity:
             raise BadRequestException("Insufficient stock.")
 
         try:

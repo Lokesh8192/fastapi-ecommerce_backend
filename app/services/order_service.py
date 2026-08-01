@@ -2,14 +2,24 @@ from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
-from app.exceptions.custom_exceptions import BadRequestException, NotFoundException
+from app.exceptions.custom_exceptions import (
+    BadRequestException,
+    NotFoundException,
+)
 from app.models.enums import OrderStatus
 from app.models.order import Order
 from app.models.order_item import OrderItem
 from app.repositories.cart_repository import CartRepository
 from app.repositories.order_repository import OrderRepository
 from app.repositories.product_repository import ProductRepository
-from app.schemas.order import OrderItemResponse, OrderResponse, OrderSummaryResponse
+from app.schemas.order import (
+    OrderCreate,
+    OrderItemResponse,
+    OrderResponse,
+    OrderSummaryResponse,
+)
+from app.schemas.adress import AddressResponse 
+from app.services.address_service import address_service
 from app.utils.order_number import generate_order_number
 
 
@@ -29,6 +39,7 @@ class OrderService:
         return OrderResponse(
             order_id=order.id,
             order_number=order.order_number,
+            address_id=order.address_id,
             status=order.status,
             subtotal=order.subtotal,
             tax=order.tax,
@@ -36,6 +47,7 @@ class OrderService:
             discount=order.discount,
             grand_total=order.grand_total,
             created_at=order.created_at,
+            address=AddressResponse.model_validate(order.address),
             items=[
                 OrderItemResponse(
                     product_id=item.product_id,
@@ -62,43 +74,75 @@ class OrderService:
         self,
         db: Session,
         user_id: int,
+        request: OrderCreate,
         tax: Decimal = Decimal("0"),
         shipping_charge: Decimal = Decimal("0"),
         discount: Decimal = Decimal("0"),
     ) -> OrderResponse:
-        """Create an order from the user's cart and complete checkout atomically."""
-        if min(tax, shipping_charge, discount) < 0:
-            raise BadRequestException("Order charges and discount cannot be negative.")
+        """
+        Create an order from the user's cart.
+        """
 
-        cart = self.cart_repository.get_cart_by_user_id(db, user_id)
+        if min(tax, shipping_charge, discount) < 0:
+            raise BadRequestException(
+                "Order charges and discount cannot be negative."
+            )
+
+        cart = self.cart_repository.get_cart_by_user_id(
+            db,
+            user_id,
+        )
+
         if not cart or not cart.items:
             raise BadRequestException("Cart is empty.")
 
         try:
+            address = address_service._get_user_address(
+                db=db,
+                user_id=user_id,
+                address_id=request.address_id,
+            )
+
             subtotal = Decimal("0")
             products = []
+
             for cart_item in cart.items:
-                product = self.product_repository.get_by_id(db, cart_item.product_id)
+                product = self.product_repository.get_by_id(
+                    db,
+                    cart_item.product_id,
+                )
+
                 if not product or not product.is_active:
                     raise BadRequestException(
                         f"Product with id {cart_item.product_id} is unavailable."
                     )
-                if cart_item.quantity > product.stock:
+
+                if cart_item.quantity > product.stock_quantity:
                     raise BadRequestException(
                         f"Insufficient stock for product '{product.name}'."
                     )
+
                 products.append((cart_item, product))
                 subtotal += product.price * cart_item.quantity
 
-            grand_total = subtotal + tax + shipping_charge - discount
+            grand_total = (
+                subtotal
+                + tax
+                + shipping_charge
+                - discount
+            )
+
             if grand_total < 0:
-                raise BadRequestException("Discount cannot exceed the order total.")
+                raise BadRequestException(
+                    "Discount cannot exceed the order total."
+                )
 
             order = self.order_repository.create_order(
                 db,
                 Order(
                     order_number=generate_order_number(),
                     user_id=user_id,
+                    address_id=address.id,
                     status=OrderStatus.PENDING,
                     subtotal=subtotal,
                     tax=tax,
@@ -109,7 +153,11 @@ class OrderService:
             )
 
             for cart_item, product in products:
-                line_total = product.price * cart_item.quantity
+                line_total = (
+                    product.price
+                    * cart_item.quantity
+                )
+
                 self.order_repository.create_order_item(
                     db,
                     OrderItem(
@@ -121,25 +169,59 @@ class OrderService:
                         total_price=line_total,
                     ),
                 )
-                product.stock -= cart_item.quantity
 
-            self.cart_repository.clear_cart(db, cart.id)
+                product.stock_quantity -= cart_item.quantity
+
+            self.cart_repository.clear_cart(
+                db,
+                cart.id,
+            )
+
             db.commit()
+            db.refresh(order)
+
         except Exception:
             db.rollback()
             raise
 
-        return self.get_order_by_id(db, user_id, order.id)
+        return self.get_order_by_id(
+            db,
+            user_id,
+            order.id,
+        )
 
-    def get_order_by_id(self, db: Session, user_id: int, order_id: int) -> OrderResponse:
-        order = self.order_repository.get_order_by_id(db, order_id)
+    def get_order_by_id(
+        self,
+        db: Session,
+        user_id: int,
+        order_id: int,
+    ) -> OrderResponse:
+
+        order = self.order_repository.get_order_by_id(
+            db,
+            order_id,
+        )
+
         if not order or order.user_id != user_id:
             raise NotFoundException("Order not found.")
+
         return self._to_response(order)
 
-    def get_orders(self, db: Session, user_id: int) -> list[OrderSummaryResponse]:
-        orders = self.order_repository.get_order_by_user(db, user_id)
-        return [self._to_summary(order) for order in orders]
+    def get_orders(
+        self,
+        db: Session,
+        user_id: int,
+    ) -> list[OrderSummaryResponse]:
+
+        orders = self.order_repository.get_order_by_user(
+            db,
+            user_id,
+        )
+
+        return [
+            self._to_summary(order)
+            for order in orders
+        ]
 
     def update_order_status(
         self,
@@ -147,14 +229,26 @@ class OrderService:
         order_id: int,
         status: OrderStatus,
     ) -> OrderResponse:
-        order = self.order_repository.get_order_by_id(db, order_id)
+
+        order = self.order_repository.get_order_by_id(
+            db,
+            order_id,
+        )
+
         if not order:
             raise NotFoundException("Order not found.")
 
         try:
             order.status = status
-            self.order_repository.update_order(db, order)
+
+            self.order_repository.update_order(
+                db,
+                order,
+            )
+
             db.commit()
+            db.refresh(order)
+
         except Exception:
             db.rollback()
             raise

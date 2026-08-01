@@ -3,6 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from app.models.enums import OrderStatus
+from app.schemas.adress import AddressResponse
 
 class OrderItemResponse(BaseModel):
     product_id:int
@@ -14,6 +15,7 @@ class OrderItemResponse(BaseModel):
 class OrderResponse(BaseModel):
     order_id: int
     order_number: str
+    address_id: int
     status: OrderStatus
     subtotal: Decimal
     tax: Decimal
@@ -21,6 +23,7 @@ class OrderResponse(BaseModel):
     discount: Decimal
     grand_total: Decimal
     created_at: datetime
+    address:AddressResponse
     items: list[OrderItemResponse]
 
 class OrderSummaryResponse(BaseModel):
@@ -32,3 +35,6 @@ class OrderSummaryResponse(BaseModel):
 
 class OrderStatusUpdateRequest(BaseModel):
     status: OrderStatus
+    
+class OrderCreate(BaseModel):
+    address_id: int

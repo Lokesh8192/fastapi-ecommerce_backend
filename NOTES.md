@@ -97,7 +97,7 @@ A product belongs to a category through `category_id` and is owned by the authen
   "name": "Wireless Bluetooth Earbuds",
   "description": "Compact true wireless earbuds with charging case.",
   "price": 2499.00,
-  "stock": 40,
+  "stock_quantity": 40,
   "image_url": "https://example.com/images/earbuds.jpg",
   "category_id": 1
 }

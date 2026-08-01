@@ -25,7 +25,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('order_number', sa.String(length=50), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('status', sa.Enum('PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED', name='orderstatus'), nullable=False),
+    sa.Column('status', sa.Enum('PENDING', 'PAID', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED', name='orderstatus'), nullable=False),
     sa.Column('subtotal', sa.Numeric(precision=10, scale=2), nullable=False),
     sa.Column('tax', sa.Numeric(precision=10, scale=2), nullable=False),
     sa.Column('shipping_charge', sa.Numeric(precision=10, scale=2), nullable=False),

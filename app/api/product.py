@@ -217,10 +217,10 @@ def update_product_stock(
     db: Session = Depends(get_db),
     current_admin: User = Depends(get_current_admin),
 ):
-    product = product_service.update_stock(
+    product = product_service.update_stock_quantity(
         db=db,
         product_id=product_id,
-        stock_quantity=request.stock,
+        stock_quantity=request.stock_quantity,
     )
 
     return ApiResponse(

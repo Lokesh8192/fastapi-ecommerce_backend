@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends,Body
 from sqlalchemy.orm import Session
 
 from app.db.depedencies import get_db
@@ -9,7 +9,7 @@ from app.core.dependencies import (
 
 from app.models.user import User
 from app.schemas.common import ApiResponse
-from app.schemas.order import OrderStatusUpdateRequest
+from app.schemas.order import OrderStatusUpdateRequest,OrderCreate
 from app.services.order_service import order_service
 
 router = APIRouter(
@@ -20,14 +20,17 @@ router = APIRouter(
 
 @router.post("", response_model=ApiResponse)
 def place_order(
+    request:OrderCreate=Body(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     return ApiResponse(
+        success=True,
         message="Order placed successfully.",
         data=order_service.create_order(
             db,
             current_user.id,
+            request=request
         ),
     )
 

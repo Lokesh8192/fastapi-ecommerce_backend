@@ -11,6 +11,11 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True,)
     order_number = Column(String(50), unique=True, nullable=False, index=True,)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False,)
+    address_id = Column(
+        Integer,
+        ForeignKey("addresses.id"),
+        nullable=False,
+    )
     status = Column(Enum(OrderStatus),
                     default=OrderStatus.PENDING, nullable=False,)
     subtotal = Column(Numeric(10, 2), default=0, nullable=False,)
@@ -24,6 +29,11 @@ class Order(Base):
 
     user = relationship(
         "User",
+        back_populates="orders",
+    )
+
+    address = relationship(
+        "Address",
         back_populates="orders",
     )
 

@@ -18,16 +18,35 @@ class OrderRepository:
 
         return order_item
 
-    def get_order_by_id(self, db: Session, order_id: int,) -> Order | None:
+    def get_order_by_id(
+        self,
+        db: Session,
+        order_id: int,
+    ) -> Order | None:
         return (
-            db.query(Order).options(joinedload(Order.items)
-                                    ).filter(Order.id == order_id).first()
+            db.query(Order)
+            .options(
+                joinedload(Order.items),
+                joinedload(Order.address),
+            )
+            .filter(Order.id == order_id)
+            .first()
         )
 
-    def get_order_by_user(self, db: Session, user_id: int) -> list[Order]:
+    def get_order_by_user(
+        self,
+        db: Session,
+        user_id: int,
+    ) -> list[Order]:
         return (
-            db.query(Order).options(joinedload(Order.items)).filter(
-                Order.user_id == user_id).order_by(Order.created_at.desc()).all()
+            db.query(Order)
+            .options(
+                joinedload(Order.items),
+                joinedload(Order.address),
+            )
+            .filter(Order.user_id == user_id)
+            .order_by(Order.created_at.desc())
+            .all()
         )
 
     def update_order(self, db: Session, order: Order) -> Order:

@@ -156,7 +156,7 @@ Products must reference an existing active category through `category_id`. The `
   "name": "Wireless Bluetooth Earbuds",
   "description": "Compact true wireless earbuds with charging case.",
   "price": 2499.00,
-  "stock": 40,
+  "stock_quantity": 40,
   "image_url": "https://example.com/images/earbuds.jpg",
   "category_id": 1
 }

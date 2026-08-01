@@ -24,3 +24,8 @@ class Address(Base):
                         server_default=func.now(), onupdate=func.now(),)
 
     user = relationship("User", back_populates="addresses",)
+
+    orders = relationship(
+        "Order",
+        back_populates="address",
+    )

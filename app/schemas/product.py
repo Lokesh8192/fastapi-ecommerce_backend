@@ -27,18 +27,18 @@ class ProductBase(BaseModel):
         gt=0,
     )
 
-    stock: int = Field(
-        ...,
-        ge=0,
-    )
     image_url: str | None = Field(
         default=None,
         max_length=500,
         description="Product image URL.",
     )
     category_id: int
-    stock_quantity: int = Field(ge=0, default=0)
+    stock_quantity: int = Field(..., ge=0)
     is_active: bool = True
+
+    model_config = {
+        "extra": "forbid",
+    }
 
     @field_validator("image_url")
     @classmethod
@@ -87,11 +87,6 @@ class ProductUpdate(BaseModel):
         gt=0,
     )
 
-    stock: int | None = Field(
-        default=None,
-        ge=0,
-    )
-
     image_url: str | None = Field(
         default=None,
         max_length=500,
@@ -99,10 +94,14 @@ class ProductUpdate(BaseModel):
     )
 
     category_id: int | None = None
-    stock_quantity: int = Field(ge=0, default=None)
+    stock_quantity: int | None = Field(default=None, ge=0)
     is_active: bool | None = None
 
+    model_config = {
+        "extra": "forbid",
+    }
     @field_validator("image_url")
+
     @classmethod
     def validate_image_url(cls, value: str | None) -> str | None:
         if value is None:
@@ -125,9 +124,10 @@ class ProductUpdate(BaseModel):
             value is None
             for value in [
                 self.name,
+                self.stock_quantity,
                 self.description,
+                self.is_active,
                 self.price,
-                self.stock,
                 self.image_url,
                 self.category_id,
             ]
@@ -160,8 +160,9 @@ class ProductResponse(ProductBase):
     }
 
 class StockUpdate(BaseModel):
-    stock: int = Field(ge=0)
+    stock_quantity: int = Field(ge=0)
 
     model_config = {
-        "from_attributes": True
+        "extra": "forbid",
+        "from_attributes": True,
     }

@@ -15,7 +15,6 @@ class Product(Base):
     )
     description = Column(Text, nullable=False,)
     price = Column(Numeric(10, 2), nullable=False,)
-    stock = Column(Integer, nullable=False, default=0,)
     image_url = Column(String(500), nullable=True,)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False,)
     stock_quantity = Column(

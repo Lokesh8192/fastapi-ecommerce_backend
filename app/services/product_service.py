@@ -37,8 +37,15 @@ class ProductService:
         if ProductRepository.get_by_name_and_category(db, request.name, request.category_id):
             raise ConflictException(
                 "Product already exists in this category.", ErrorCode.PRODUCT_ALREADY_EXISTS)
-        product = Product(name=request.name, description=request.description, price=request.price, stock=request.stock,
-                          image_url=request.image_url, category_id=request.category_id, created_by=current_admin.id)
+        product = Product(
+            name=request.name,
+            description=request.description,
+            price=request.price,
+            stock_quantity=request.stock_quantity,
+            image_url=request.image_url,
+            category_id=request.category_id,
+            created_by=current_admin.id,
+        )
         return ProductResponse.model_validate(ProductRepository.create(db, product))
 
     @staticmethod
@@ -96,21 +103,21 @@ class ProductService:
                 raise ConflictException(
                     "Product already exists in this category.", ErrorCode.PRODUCT_ALREADY_EXISTS)
             product.name = request.name
-        for field in ("description", "price", "stock", "image_url"):
+        for field in ("description", "price", "stock_quantity", "image_url", "is_active"):
             value = getattr(request, field)
             if value is not None:
                 setattr(product, field, value)
         return ProductResponse.model_validate(ProductRepository.update(db, product))
 
     @staticmethod
-    def update_stock(
+    def update_stock_quantity(
         db: Session,
         product_id: int,
         stock_quantity: int,
     ) -> ProductResponse:
         product = ProductService._get_existing_product(db, product_id)
 
-        product.stock = stock_quantity
+        product.stock_quantity = stock_quantity
 
         updated_product = ProductRepository.update(db, product)
 
@@ -127,7 +134,7 @@ class ProductService:
                 ErrorCode.PRODUCT_INACTIVE,
             )
 
-        if product.stock < quantity:
+        if product.stock_quantity < quantity:
             raise BadRequestException(
                 "Insufficient stock available.",
                 ErrorCode.INSUFFICIENT_STOCK,
@@ -139,7 +146,7 @@ class ProductService:
         product: Product,
         quantity: int,
     ) -> None:
-        product.stock -= quantity
+        product.stock_quantity -= quantity
         ProductRepository.update(db, product)
 
     @staticmethod
@@ -148,7 +155,7 @@ class ProductService:
         product: Product,
         quantity: int,
     ) -> None:
-        product.stock += quantity
+        product.stock_quantity += quantity
         ProductRepository.update(db, product)
 
     @staticmethod
