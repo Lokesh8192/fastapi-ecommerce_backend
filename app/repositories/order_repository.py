@@ -28,6 +28,7 @@ class OrderRepository:
             .options(
                 joinedload(Order.items),
                 joinedload(Order.address),
+                joinedload(Order.user),
             )
             .filter(Order.id == order_id)
             .first()
@@ -43,6 +44,7 @@ class OrderRepository:
             .options(
                 joinedload(Order.items),
                 joinedload(Order.address),
+                joinedload(Order.user),
             )
             .filter(Order.user_id == user_id)
             .order_by(Order.created_at.desc())

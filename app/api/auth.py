@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from app.db.depedencies import get_db
@@ -7,7 +7,7 @@ from app.schemas.token import RefreshTokenRequest, Token
 from app.schemas.user import UserCreate, UserResponse
 from app.services.auth_service import auth_service
 from app.schemas.common import ApiResponse
-
+from app.services.email_service import EmailService
 router = APIRouter(
     prefix="/auth",
     tags=["Authetication"],
@@ -19,9 +19,13 @@ router = APIRouter(
     response_model=ApiResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def register(user: UserCreate, db: Session = Depends(get_db),):
+def register(user: UserCreate,background_tasks: BackgroundTasks, db: Session = Depends(get_db),):
     user_response = auth_service.register_user(db, user)
-
+    background_tasks.add_task(
+        EmailService.send_welcome_email,
+        user_response.email,
+        user_response.username,
+    )
     return ApiResponse(
         success=True,
         message="User registered successfully.",

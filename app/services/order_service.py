@@ -17,8 +17,9 @@ from app.schemas.order import (
     OrderItemResponse,
     OrderResponse,
     OrderSummaryResponse,
+    OrderStatus,
 )
-from app.schemas.adress import AddressResponse 
+from app.schemas.adress import AddressResponse
 from app.services.address_service import address_service
 from app.utils.order_number import generate_order_number
 
@@ -237,6 +238,36 @@ class OrderService:
 
         if not order:
             raise NotFoundException("Order not found.")
+
+        allowed_transitions = {
+            OrderStatus.PENDING: {
+                OrderStatus.CONFIRMED,
+                OrderStatus.CANCELLED,
+            },
+            OrderStatus.CONFIRMED: {
+                OrderStatus.SHIPPED,
+                OrderStatus.CANCELLED,
+            },
+            OrderStatus.SHIPPED: {
+                OrderStatus.DELIVERED,
+            },
+            OrderStatus.DELIVERED: {
+                OrderStatus.RETURNED,
+            },
+            OrderStatus.RETURNED: set(),
+            OrderStatus.CANCELLED: set(),
+        }
+
+        if status == order.status:
+            raise BadRequestException(
+                f"Order is already in '{status.value}' status."
+            )
+
+        if status not in allowed_transitions.get(order.status, set()):
+            raise BadRequestException(
+                f"Cannot change order status from "
+                f"'{order.status.value}' to '{status.value}'."
+            )
 
         try:
             order.status = status

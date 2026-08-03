@@ -16,6 +16,17 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "E-Commerce Backend API"
     API_VERSION: str = "v1"
     DEBUG: bool = False
+    MAIL_USERNAME: str
+    MAIL_PASSWORD: str
+    MAIL_FROM: str
+    MAIL_PORT: int
+    MAIL_SERVER: str
+    MAIL_STARTTLS: bool
+    MAIL_SSL_TLS: bool
+    MAIL_FROM_NAME: str
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_DB: int
 
 
 settings = Settings()

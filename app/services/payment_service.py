@@ -107,8 +107,21 @@ class PaymentService:
         payment_id: int,
         payment_status: PaymentStatus,
     ) -> PaymentResponse:
+
+        print("=" * 60)
+        print("Payment ID received:", payment_id)
+
         """Record a processor result and update the order when payment succeeds."""
         payment = self.payment_repository.get_payment_by_id(db, payment_id)
+
+        print("Payment object:", payment)
+
+        if payment:
+            print("Payment DB ID:", payment.id)
+            print("Order ID:", payment.order_id)
+
+        print("=" * 60)
+
         if not payment:
             raise NotFoundException("Payment not found.")
 
@@ -132,27 +145,46 @@ class PaymentService:
             if payment_status == PaymentStatus.SUCCESS:
                 payment.transaction_id = f"TXN-{uuid4().hex.upper()}"
 
-            # Validate stock for all order items first
-            for item in order.items:
-                ProductService.validate_stock(
-                    product=item.product,
-                    quantity=item.quantity,
-                )
+                # Validate stock
+                for item in order.items:
+                    ProductService.validate_stock(
+                        product=item.product,
+                        quantity=item.quantity,
+                    )
 
-            # Deduct stock only after all validations succeed
-            for item in order.items:
-                ProductService.deduct_stock(
-                    db=db,
-                    product=item.product,
-                    quantity=item.quantity,
-                )
+                # Deduct stock
+                for item in order.items:
+                    ProductService.deduct_stock(
+                        db=db,
+                        product=item.product,
+                        quantity=item.quantity,
+                    )
 
                 order.status = OrderStatus.CONFIRMED
 
-                self.payment_repository.update_payment(db, payment)
-                self.order_repository.update_order(db, order)
-                db.commit()
-                db.refresh(payment)
+            elif payment_status == PaymentStatus.REFUNDED:
+
+                if order.status != OrderStatus.DELIVERED:
+                    raise BadRequestException(
+                        "Only delivered orders can be refunded."
+                    )
+
+                # Restore stock
+                for item in order.items:
+                    ProductService.restore_stock(
+                        db=db,
+                        product=item.product,
+                        quantity=item.quantity,
+                    )
+
+                order.status = OrderStatus.RETURNED
+
+            self.payment_repository.update_payment(db, payment)
+            self.order_repository.update_order(db, order)
+
+            db.commit()
+            db.refresh(payment)
+
         except Exception:
             db.rollback()
             raise

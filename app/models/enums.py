@@ -6,6 +6,7 @@ class OrderStatus(str, Enum):
     CONFIRMED = "CONFIRMED"
     SHIPPED = "SHIPPED"
     DELIVERED = "DELIVERED"
+    RETURNED = "RETURNED"
     CANCELLED = "CANCELLED"
 
 
