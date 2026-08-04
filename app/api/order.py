@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Body, BackgroundTasks
+from fastapi import APIRouter, Depends, Body, BackgroundTasks,Query
 from sqlalchemy.orm import Session
 
 from app.db.depedencies import get_db
@@ -9,7 +9,8 @@ from app.core.dependencies import (
 
 from app.models.user import User
 from app.schemas.common import ApiResponse
-from app.schemas.order import OrderStatusUpdateRequest, OrderCreate
+from app.schemas.order import OrderCreate
+from app.models.enums import OrderStatus
 from app.services.order_service import order_service
 from app.services.email_service import EmailService
 
@@ -91,14 +92,14 @@ def get_order_details(
 )
 def update_order_status(
     order_id: int,
-    request: OrderStatusUpdateRequest,
+    status: OrderStatus = Query(...),
     db: Session = Depends(get_db),
-    current_admin: User = Depends(get_current_admin),
+    current_user: User = Depends(get_current_admin),
 ):
     order = order_service.update_order_status(
         db=db,
         order_id=order_id,
-        status=request.status,
+        status=status,
     )
 
     return ApiResponse(

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from decimal import Decimal
 from app.core.dependencies import (
@@ -50,14 +50,14 @@ def create_product(
     response_model=ApiResponse,
 )
 def get_products(
-    search: str | None = None,
-    category_id: int | None = None,
-    min_price: Decimal | None = None,
-    max_price: Decimal | None = None,
-    sort_by: str = "created_at",
-    order: str = "desc",
-    page: int = 1,
-    size: int = 10,
+    search: str | None = Query(None),
+    category_id: int | None = Query(None),
+    min_price: Decimal | None = Query(None),
+    max_price: Decimal | None = Query(None),
+    sort_by: str = Query("created_at"),
+    order: str = Query("desc"),
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -103,7 +103,7 @@ def get_all_products(
     response_model=ApiResponse,
 )
 def get_low_stock_products(
-    threshold: int = 10,
+    threshold: int = Query(10, ge=0),
     db: Session = Depends(get_db),
     current_admin: User = Depends(get_current_admin),
 ):
