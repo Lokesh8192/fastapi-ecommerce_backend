@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Body, BackgroundTasks,Query
+from fastapi import APIRouter, Depends, Body, Query
 from sqlalchemy.orm import Session
 
 from app.db.depedencies import get_db
@@ -13,6 +13,7 @@ from app.schemas.order import OrderCreate
 from app.models.enums import OrderStatus
 from app.services.order_service import order_service
 from app.services.email_service import EmailService
+from app.tasks.email_tasks import send_order_confirmation_email_task
 
 router = APIRouter(
     prefix="/orders",
@@ -25,7 +26,6 @@ router = APIRouter(
     response_model=ApiResponse,
 )
 def place_order(
-    background_tasks: BackgroundTasks,
     request: OrderCreate = Body(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -37,8 +37,7 @@ def place_order(
         request=request,
     )
 
-    background_tasks.add_task(
-        EmailService.send_order_confirmation,
+    send_order_confirmation_email_task.delay(
         current_user.email,
         current_user.username,
         order.order_number,

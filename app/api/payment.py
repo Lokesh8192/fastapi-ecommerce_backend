@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, status, BackgroundTasks
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.db.depedencies import get_db
@@ -8,6 +8,7 @@ from app.models.user import User
 from app.schemas.payment import PaymentCreate, PaymentResponse
 from app.services.payment_service import payment_service
 from app.services.email_service import EmailService
+from app.tasks.email_tasks import send_payment_success_email_task
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
 
@@ -67,7 +68,6 @@ def get_payment_by_order_id(
 )
 def process_payment(
     payment_id: int,
-    background_tasks: BackgroundTasks,
     payment_status: PaymentStatus = Query(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin),
@@ -85,8 +85,7 @@ def process_payment(
     )
 
     if payment.payment_status == PaymentStatus.SUCCESS:
-        background_tasks.add_task(
-            EmailService.send_payment_success,
+        send_payment_success_email_task.delay(
             order.user.email,
             order.user.username,
             payment.payment_reference,
@@ -94,5 +93,4 @@ def process_payment(
             payment.amount,
             payment.payment_method.value,
         )
-
     return payment
