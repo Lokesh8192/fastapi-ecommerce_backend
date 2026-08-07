@@ -21,7 +21,7 @@ class UserBase(BaseModel):
         default=None,
         min_length=10,
         max_length=20,
-        description="Phone Number must be at least 1o digits."
+        description="Phone Number must be at least 10 digits.",
     )
 
 

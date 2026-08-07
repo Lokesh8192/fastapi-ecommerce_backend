@@ -34,7 +34,7 @@ def get_all_users(
 
     return ApiResponse(
         success=True,
-        message="User Fetched Successfully.",
+        message="Users Fetched Successfully.",
         data=users,
     )
 
@@ -48,7 +48,7 @@ def get_user_by_id(user_id: int, db: Session = Depends(get_db), current_admin: U
 
     return ApiResponse(
         success=True,
-        message="User Fetched Successfully",
+        message="User Profile Fetched Successfully",
         data=user,
     )
 
