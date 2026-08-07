@@ -12,6 +12,7 @@ from app.core.config import settings
 pytest_plugins = [
     "tests.fixtures.user",
     "tests.fixtures.auth",
+    "tests.fixtures.category",
 ]
 
 engine = create_engine(settings.TEST_DATABASE_URL)

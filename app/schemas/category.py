@@ -27,7 +27,7 @@ class CategoryBase(BaseModel):
                 "Category name cannot be empty."
             )
 
-        return value.title()
+        return value
 
 
 class CategoryCreate(CategoryBase):

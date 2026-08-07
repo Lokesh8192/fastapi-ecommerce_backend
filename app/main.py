@@ -35,6 +35,10 @@ app.include_router(user_router)
 app.include_router(address_router)
 app.include_router(admin_router)
 app.include_router(category_router)
+# app.include_router(
+#     category_router,
+#     prefix="/api",
+# )
 app.include_router(product_router)
 app.include_router(
     cart_router,

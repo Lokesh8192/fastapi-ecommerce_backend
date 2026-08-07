@@ -3,6 +3,7 @@ from app.core.roles import UserRole
 from typing import Optional
 import re
 
+
 class UserBase(BaseModel):
     username: str = Field(
         ...,
@@ -34,6 +35,8 @@ class UserCreate(UserBase):
     )
 
     confirm_password: str
+
+    role: Optional[UserRole] = None
 
     @field_validator("password")
     @classmethod
@@ -78,7 +81,7 @@ class UserUpdate(BaseModel):
         max_length=50,
         description="Username",
     )
-    
+
     @field_validator("username")
     @classmethod
     def validate_username(cls, value):
@@ -91,7 +94,7 @@ class UserUpdate(BaseModel):
             raise ValueError(
                 "Username must start with a letter and contain only letters, numbers, and underscores."
             )
-    
+
     phone_number: str | None = None
 
     @field_validator("phone_number")
@@ -107,7 +110,7 @@ class UserUpdate(BaseModel):
             raise ValueError("Phone number must be exactly 10 digits.")
 
         return value
-    
+
     @model_validator(mode="after")
     def validate_update_request(self):
         if self.username is None and self.phone_number is None:
@@ -116,6 +119,7 @@ class UserUpdate(BaseModel):
             )
 
         return self
+
 
 class ChangePasswordRequest(BaseModel):
     old_password: str = Field(...)
@@ -159,5 +163,6 @@ class ChangePasswordRequest(BaseModel):
             raise ValueError("Password do not match")
         return self
 
+
 class UserRoleUpdate(BaseModel):
-    role:UserRole
+    role: UserRole

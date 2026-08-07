@@ -49,6 +49,7 @@ class AuthService:
             email=user_data.email,
             phone_number=user_data.phone_number,
             hashed_password=hash_password(user_data.password),
+            role=(user_data.role if getattr(user_data, "role", None) else "customer"),
         )
 
         created_user = UserRepository.create(db, user)

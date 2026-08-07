@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import (
@@ -25,6 +25,7 @@ router = APIRouter(
 @router.post(
     "",
     response_model=ApiResponse,
+    status_code=status.HTTP_201_CREATED,
 )
 def create_category(
     request: CategoryCreate,
@@ -72,7 +73,7 @@ def create_categories(
 )
 def get_all_categories(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    # public endpoint — no authentication required
 ):
 
     categories = category_service.get_all_categories(
