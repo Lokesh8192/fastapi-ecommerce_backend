@@ -13,6 +13,7 @@ pytest_plugins = [
     "tests.fixtures.user",
     "tests.fixtures.auth",
     "tests.fixtures.category",
+    "tests.fixtures.product",
 ]
 
 engine = create_engine(settings.TEST_DATABASE_URL)
@@ -43,7 +44,7 @@ def setup_database():
 
     yield
 
-    # Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture
